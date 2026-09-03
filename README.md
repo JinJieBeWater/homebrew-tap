@@ -13,6 +13,12 @@ tap "jinjiebewater/tap"
 brew "<formula>"
 ```
 
+## Qujing
+
+```bash
+brew install jinjiebewater/tap/qujing
+```
+
 ## Documentation
 
 `brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
