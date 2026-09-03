@@ -23,6 +23,8 @@ for target in "${targets[@]}"; do
 done
 
 ruby - "${arguments[@]}" <<'RUBY'
+require "tempfile"
+
 path = ARGV.shift
 updates = ARGV.each_slice(3).to_h { |target, url, sha256| [target, [url, sha256]] }
 lines = File.readlines(path)
@@ -37,5 +39,12 @@ updates.each do |target, (url, sha256)|
   lines[marker + 2] = %(#{indent}sha256 "#{sha256}"\n)
 end
 
-File.write(path, lines.join)
+Tempfile.create([".qujing-", ".rb"], File.dirname(path)) do |temp|
+  temp.write(lines.join)
+  temp.flush
+  temp.fsync
+  File.chmod(File.stat(path).mode, temp.path)
+  temp.close
+  File.rename(temp.path, path)
+end
 RUBY
