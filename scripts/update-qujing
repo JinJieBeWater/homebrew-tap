@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repository=${QUJING_REPOSITORY:-JinJieBeWater/qujing}
+formula=${1:-Formula/qujing.rb}
+release=$(gh api "repos/$repository/releases/latest")
+tag=$(jq -r .tag_name <<<"$release")
+[[ $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+  echo "Unsupported Qujing release tag: $tag" >&2
+  exit 1
+}
+
+declare -a targets=(darwin-arm64 linux-x64)
+declare -a arguments=("$formula")
+for target in "${targets[@]}"; do
+  asset="qujing-$tag-$target.tar.gz"
+  digest=$(jq -r --arg asset "$asset" '.assets[] | select(.name == $asset) | .digest' <<<"$release")
+  [[ $digest =~ ^sha256:([0-9a-f]{64})$ ]] || {
+    echo "Missing SHA-256 digest for $asset" >&2
+    exit 1
+  }
+  arguments+=("$target" "https://github.com/$repository/releases/download/$tag/$asset" "${BASH_REMATCH[1]}")
+done
+
+ruby - "${arguments[@]}" <<'RUBY'
+path = ARGV.shift
+updates = ARGV.each_slice(3).to_h { |target, url, sha256| [target, [url, sha256]] }
+lines = File.readlines(path)
+
+updates.each do |target, (url, sha256)|
+  marker = lines.index { |line| line.include?("# qujing-update: #{target}") }
+  abort "Missing update marker for #{target}" unless marker
+  abort "Unexpected URL line after #{target} marker" unless lines.fetch(marker + 1).match?(/^\s+url "/)
+  abort "Unexpected SHA-256 line after #{target} marker" unless lines.fetch(marker + 2).match?(/^\s+sha256 "/)
+  indent = lines.fetch(marker + 1)[/^\s+/]
+  lines[marker + 1] = %(#{indent}url "#{url}"\n)
+  lines[marker + 2] = %(#{indent}sha256 "#{sha256}"\n)
+end
+
+File.write(path, lines.join)
+RUBY

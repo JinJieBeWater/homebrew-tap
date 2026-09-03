@@ -2,10 +2,16 @@ class Qujing < Formula
   desc "Ask trusted colleagues through one local MCP endpoint"
   homepage "https://github.com/JinJieBeWater/qujing"
 
+  livecheck do
+    skip "Updated by update-qujing.yml"
+  end
+
   if OS.mac?
+    # qujing-update: darwin-arm64
     url "https://github.com/JinJieBeWater/qujing/releases/download/v0.1.0/qujing-v0.1.0-darwin-arm64.tar.gz"
     sha256 "231e737a637e46b87884f8e04f1a090af3a907f9c20ac97e1bc60bdcb276863e"
   else
+    # qujing-update: linux-x64
     url "https://github.com/JinJieBeWater/qujing/releases/download/v0.1.0/qujing-v0.1.0-linux-x64.tar.gz"
     sha256 "a58b70d32c7f94bd03271fdff6be873b301e3ddccb5dd438f08c223e69830c36"
   end

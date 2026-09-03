@@ -1,0 +1,55 @@
+name: update Qujing formula
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every day at 21:20 UTC, after the generated generic autobump job.
+    - cron: 20 21 * * *
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash -xeuo pipefail {0}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@a657b8b0cd35d0f65cce41fce9b24cf054b49869 # 2026.08.24.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up git
+        uses: Homebrew/actions/git-user-config@a657b8b0cd35d0f65cce41fce9b24cf054b49869 # 2026.08.24.1
+
+      - name: Update Formula
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/update-qujing
+
+      - name: Validate Formula
+        env:
+          TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
+        run: |
+          brew style "$TAP_NAME"
+          brew readall --aliases --os=all --arch=all "$TAP_NAME"
+          brew audit --strict --online "$TAP_NAME/qujing"
+          brew trust --formula "$TAP_NAME/qujing"
+          brew install "$TAP_NAME/qujing"
+          brew test "$TAP_NAME/qujing"
+
+      - name: Commit update
+        run: |
+          if git diff --quiet -- Formula/qujing.rb; then
+            exit 0
+          fi
+          git add Formula/qujing.rb
+          git commit -m "qujing $(brew info --json=v2 qujing | jq -r '.formulae[0].versions.stable')"
+          git push origin HEAD:main
