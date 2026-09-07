@@ -8,12 +8,12 @@ class Qujing < Formula
 
   if OS.mac?
     # qujing-update: darwin-arm64
-    url "https://github.com/JinJieBeWater/qujing/releases/download/v0.1.2/qujing-v0.1.2-darwin-arm64.tar.gz"
-    sha256 "059cbb497c1b69776982cc05a67c5fff33672d62d1484ae0f19456ecc26c6e92"
+    url "https://github.com/JinJieBeWater/qujing/releases/download/v0.2.0/qujing-v0.2.0-darwin-arm64.tar.gz"
+    sha256 "436df2f2bfb66e7ff4a466fec17ab6cbe852a7178b963fe028a110d6e77320a0"
   else
     # qujing-update: linux-x64
-    url "https://github.com/JinJieBeWater/qujing/releases/download/v0.1.2/qujing-v0.1.2-linux-x64.tar.gz"
-    sha256 "5dafe77b4916df37beb809ba2cf129368f6df40004d1686f2e604dd1740bd469"
+    url "https://github.com/JinJieBeWater/qujing/releases/download/v0.2.0/qujing-v0.2.0-linux-x64.tar.gz"
+    sha256 "45745e5567fe3f44f4262f4f49cce0352a3a5f30efad669d7554ce482edf27d2"
   end
 
   on_macos do
